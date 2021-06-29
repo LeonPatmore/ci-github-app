@@ -11,7 +11,7 @@ workflows:
   test_and_deploy:
     jobs:
       - sam/deploy:
-          context: aws-credentials-context
+          context: aws-creds
           name: deploy
           s3-bucket: ci-github-app-sam
           stack-name: ci-github-app
