@@ -1,6 +1,20 @@
 
 /**
  * 
+ * @param {import('probot').Context} context 
+ */
+async function prOpened(context) {
+    console.log("pr opened")
+
+    return context.octokit.pulls.createReview({
+        event: "COMMENT",
+        body: "The bot is working!",
+        ...context.pullRequest()
+    })
+}
+
+/**
+ * 
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
@@ -12,4 +26,7 @@ module.exports = (app) => {
         });
         return context.octokit.issues.createComment(issueComment);
     });
+
+    app.on("pull_request.opened", prOpened)
+    app.on("pull_request.reopened", prOpened)
 };
