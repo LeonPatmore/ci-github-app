@@ -9,7 +9,7 @@ Resources:
       CodeUri: ./
       Handler: handler.webhooks
       Runtime: nodejs10.x
-      Timeout: 20
+      Timeout: 600
       Events:
         Api:
           Type: Api

@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@probot/adapter-aws-lambda-serverless": "^2.0.1"
+    "@octokit/auth-app": "^3.5.3",
+    "@octokit/rest": "^18.6.6",
+    "@probot/adapter-aws-lambda-serverless": "^2.0.1",
+    "aws-sdk": "^2.937.0"
   }
 }
