@@ -6,7 +6,6 @@ Resources:
   Webhooks:
     Type: AWS::Serverless::Function
     Properties:
-      Role:
       CodeUri: ./
       Handler: handler.webhooks
       Runtime: nodejs10.x

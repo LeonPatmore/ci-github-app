@@ -20,7 +20,7 @@ async function prOpened(context) {
 module.exports = (app) => {
     console.log("Yay, the app was loaded!");
     app.on("issues.opened", async (context) => {
-        console.log("hi")
+        console.log("Issue has been opened.")
         const issueComment = context.issue({
             body: "Thanks for opening this issue " + context.payload.sender.login,
         });
