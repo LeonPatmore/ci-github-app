@@ -29,4 +29,13 @@ module.exports = (app) => {
 
     app.on("pull_request.opened", prOpened)
     app.on("pull_request.reopened", prOpened)
+
+    app.on("pull_request_review", async (context) => {
+        const body = context.payload.review.body
+        return context.octokit.pulls.createReview({
+            event: "COMMENT",
+            body: `Running ${body}`,
+            ...context.pullRequest()
+        })
+    })
 };
