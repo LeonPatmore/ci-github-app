@@ -1,4 +1,8 @@
 
+const AWS = require("aws-sdk")
+const codeBuildClient = new AWS.CodeBuild()
+
+
 /**
  * 
  * @param {import('probot').Context} context 
@@ -36,6 +40,34 @@ module.exports = (app) => {
             event: "COMMENT",
             body: `Running ${body}`,
             ...context.pullRequest()
+        })
+    })
+
+    app.on("pull_request_review_comment", async (context) => {
+        console.log("PR comment!")
+        console.log(`Starting test and build with url [ ${context.payload.repository.clone_url} ]`)
+
+        const startBuild = new Promise((resolve, reject) => {
+            codeBuildClient.startBuild({
+                projectName: "test",
+                environmentVariablesOverride: [
+                    {name: "PROJECT", value: context.payload.repository.clone_url}
+                ]
+            }, (err, data) => {
+                if (err) reject(err)
+                else resolve(data)
+            })
+        })
+        return startBuild.then(data => {
+            console.log(data)
+            return context.octokit.pulls.createReview({
+                event: "COMMENT",
+                body: `Running build and test!`,
+                ...context.pullRequest()
+            }) 
+        }, err => {
+            console.log("Err " + err)
+            throw err
         })
     })
 };
