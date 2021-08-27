@@ -19,6 +19,43 @@ async function prOpened(context) {
 
 /**
  * 
+ * @param {import('probot').Context} context 
+ */
+async function prComment(context) {
+    console.log("PR comment!")
+    console.log(`Starting test and build with url [ ${context.payload.repository.clone_url} ]`)
+
+    if (context.isBot) {
+        console.log("Pull request review was a bot, will not do anything!")
+        return;
+    }
+
+    const startBuild = new Promise((resolve, reject) => {
+        codeBuildClient.startBuild({
+            projectName: "BuildAndTest",
+            environmentVariablesOverride: [
+                {name: "PROJECT", value: context.payload.repository.clone_url}
+            ]
+        }, (err, data) => {
+            if (err) reject(err)
+            else resolve(data)
+        })
+    })
+    return startBuild.then(data => {
+        console.log(data)
+        return context.octokit.pulls.createReview({
+            event: "COMMENT",
+            body: `Running build and test!`,
+            ...context.pullRequest()
+        }) 
+    }, err => {
+        console.log("Err " + err)
+        throw err
+    })
+}
+
+/**
+ * 
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
@@ -43,36 +80,6 @@ module.exports = (app) => {
     //     })
     // })
 
-    app.on("pull_request_review", async (context) => {
-        console.log("PR comment!")
-        console.log(`Starting test and build with url [ ${context.payload.repository.clone_url} ]`)
-
-        if (context.isBot) {
-            console.log("Pull request review was a bot, will not do anything!")
-            return;
-        }
-
-        const startBuild = new Promise((resolve, reject) => {
-            codeBuildClient.startBuild({
-                projectName: "test",
-                environmentVariablesOverride: [
-                    {name: "PROJECT", value: context.payload.repository.clone_url}
-                ]
-            }, (err, data) => {
-                if (err) reject(err)
-                else resolve(data)
-            })
-        })
-        return startBuild.then(data => {
-            console.log(data)
-            return context.octokit.pulls.createReview({
-                event: "COMMENT",
-                body: `Running build and test!`,
-                ...context.pullRequest()
-            }) 
-        }, err => {
-            console.log("Err " + err)
-            throw err
-        })
-    })
+    app.on("pull_request_review", prComment)
+    app.on("commit_comment", prComment)
 };
