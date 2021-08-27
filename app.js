@@ -30,6 +30,15 @@ async function prComment(context) {
         return;
     }
 
+    const headSha = context.payload.pull_request.head.sha
+    console.log(`head sha is ${headSha}`)
+    const startCheck = context.octokit.checks.create({
+        name: "BuildAndTest",
+        head_sha: headSha,
+        status: "in_progress"
+    },
+    ...context.repo())
+
     const startBuild = new Promise((resolve, reject) => {
         codeBuildClient.startBuild({
             projectName: "BuildAndTest",
@@ -41,16 +50,18 @@ async function prComment(context) {
             else resolve(data)
         })
     })
-    return startBuild.then(data => {
+    return startCheck.then(checkRes => {
+        return startBuild.then(buildRes => Promise.resolve({
+            checkRes,
+            buildRes
+        }))
+    }).then(data => {
         console.log(data)
         return context.octokit.pulls.createReview({
             event: "COMMENT",
             body: `Running build and test!`,
             ...context.pullRequest()
         }) 
-    }, err => {
-        console.log("Err " + err)
-        throw err
     })
 }
 

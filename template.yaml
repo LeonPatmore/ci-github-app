@@ -40,7 +40,7 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/docker:18.09.0-1.7.0
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
         PrivilegedMode: true
         Type: LINUX_CONTAINER
       Source:
