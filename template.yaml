@@ -28,6 +28,7 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
             Version: '2012-10-17'
+          PolicyName: Logs
       RoleName: CICodeBuild
   BuildTestJob:
     Type: AWS::CodeBuild::Project
