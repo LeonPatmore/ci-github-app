@@ -16,3 +16,4 @@ workflows:
           s3-bucket: ci-github-app-sam
           stack-name: ci-github-app
           template: ./template.yaml
+          capabilities: CAPABILITY_NAMED_IAM
