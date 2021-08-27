@@ -35,9 +35,9 @@ async function prComment(context) {
     const startCheck = context.octokit.checks.create({
         name: "BuildAndTest",
         head_sha: headSha,
-        status: "in_progress"
-    },
-    ...context.repo())
+        status: "in_progress",
+        ...context.repo()
+    })
 
     const startBuild = new Promise((resolve, reject) => {
         codeBuildClient.startBuild({
