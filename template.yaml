@@ -3,6 +3,57 @@ Transform: AWS::Serverless-2016-10-31
 Description: CI Github App
 
 Resources:
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:DescribeLogGroups
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
+            Version: '2012-10-17'
+      RoleName: CICodeBuild
+  BuildTestJob:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Description: Build and test.
+      Name: "BuildAndTest"
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/docker:18.09.0-1.7.0
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      Source:
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                java: corretto11
+            build:
+              commands:
+                - git clone ${PROJECT} .
+                - ./gradlew test
+        Type: NO_SOURCE
   Webhooks:
     Type: AWS::Serverless::Function
     Properties:
@@ -20,6 +71,11 @@ Resources:
                 - "secretsmanager:ListSecretVersionIds"
                 - "secretsmanager:ListSecrets"
               Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:ci-github-app/*"
+            - Effect: Allow
+              Action:
+                - codebuild:StartBuild
+              Resource:
+                - !GetAtt BuildTestJob.Arn
       Timeout: 600
       Events:
         Api:
