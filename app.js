@@ -93,4 +93,5 @@ module.exports = (app) => {
 
     app.on("pull_request_review", prComment)
     app.on("commit_comment", prComment)
+    app.on("issue_comment.created", prComment)
 };
