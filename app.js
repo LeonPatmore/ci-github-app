@@ -34,18 +34,23 @@ module.exports = (app) => {
     app.on("pull_request.opened", prOpened)
     app.on("pull_request.reopened", prOpened)
 
-    app.on("pull_request_review", async (context) => {
-        const body = context.payload.review.body
-        return context.octokit.pulls.createReview({
-            event: "COMMENT",
-            body: `Running ${body}`,
-            ...context.pullRequest()
-        })
-    })
+    // app.on("pull_request_review", async (context) => {
+    //     const body = context.payload.review.body
+    //     return context.octokit.pulls.createReview({
+    //         event: "COMMENT",
+    //         body: `Running ${body}`,
+    //         ...context.pullRequest()
+    //     })
+    // })
 
-    app.on("pull_request_review_comment", async (context) => {
+    app.on("pull_request_review", async (context) => {
         console.log("PR comment!")
         console.log(`Starting test and build with url [ ${context.payload.repository.clone_url} ]`)
+
+        if (context.isBot) {
+            console.log("Pull request review was a bot, will not do anything!")
+            return;
+        }
 
         const startBuild = new Promise((resolve, reject) => {
             codeBuildClient.startBuild({
