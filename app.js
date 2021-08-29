@@ -49,7 +49,7 @@ async function startCheck(name, context, headSha) {
     return res.data.id;
 }
 
-async function finishCheck(conclusion, checkRunId) {
+async function finishCheck(context, conclusion, checkRunId) {
     console.log(`Setting check [ ${checkRunId} ] to [ ${conclusion} ]`)
     await context.octokit.checks.update({
         status: 'completed',
@@ -98,14 +98,14 @@ async function runCiComponent(component, context) {
     })
     const success = await component.funcToCall(context)
     if (success) {
-        await finishCheck('success', checkId)
+        await finishCheck(context, 'success', checkId)
         await context.octokit.pulls.createReview({
             event: "COMMENT",
             body: `${component.prAction} has passed!`,
             ...context.pullRequest()
         })
     } else {
-        await finishCheck('failure', checkId)
+        await finishCheck(context, 'failure', checkId)
         await context.octokit.pulls.createReview({
             event: "COMMENT",
             body: `${component.prAction} has failed!`,
