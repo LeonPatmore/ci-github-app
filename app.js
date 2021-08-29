@@ -4,12 +4,10 @@ const codeBuildClient = new AWS.CodeBuild()
 
 
 /**
- * 
  * @param {import('probot').Context} context 
  */
-async function prOpened(context) {
-    console.log("pr opened")
-
+async function sayHi(context) {
+    console.log("Saying hello!")
     return context.octokit.pulls.createReview({
         event: "COMMENT",
         body: "The bot is working!",
@@ -17,38 +15,49 @@ async function prOpened(context) {
     })
 }
 
+
 /**
- * 
  * @param {import('probot').Context} context 
  */
-async function prComment(context) {
-    console.log("PR comment!")
-    console.log(`Starting test and build with url [ ${context.payload.repository.clone_url} ]`)
+function isIssueComment(context) {
+    return context.name == 'issue_comment' || context.name == 'issue_comment.created'
+}
 
+/**
+ * @param {import('probot').Context} context 
+ */
+async function runCi(context) {
+    console.log("Running CI!")
+    
     if (context.isBot) {
         console.log("Pull request review was a bot, will not do anything!")
         return;
     }
 
-    var headSha
-    if (context.name == "issue_comment.created") {
-        const res = context.octokit.pulls.get({
+    console.log(`Starting test and build with url [ ${context.payload.repository.clone_url} ]`)
+
+    var getHeadSha
+    if (isIssueComment(context)) {
+        const getPr = context.octokit.pulls.get({
             pull_number: context.payload.issue.number,
             ...context.repo()
         })
         console.log(res)
-        headSha = context.payload.pull_request.head.sha
+        getHeadSha = getPr.then(res => {
+            return res.data.head.sha
+        })
     } else {
-        headSha = context.payload.pull_request.head.sha
+        getHeadSha = Promise.resolve(context.payload.pull_request.head.sha)
     }
 
-    console.log(`head sha is ${headSha}`)
-    const startCheck = context.octokit.checks.create({
-        name: "BuildAndTest",
-        head_sha: headSha,
-        status: "in_progress",
-        ...context.repo()
-    })
+    const startCheck = (headSha) => {
+        return context.octokit.checks.create({
+            name: "BuildAndTest",
+            head_sha: headSha,
+            status: "in_progress",
+            ...context.repo()
+        })
+    }
 
     const startBuild = new Promise((resolve, reject) => {
         codeBuildClient.startBuild({
@@ -63,13 +72,16 @@ async function prComment(context) {
     })
 
 
-    return startCheck.then(checkRes => {
-        return startBuild.then(buildRes => Promise.resolve({
+    return getHeadSha.then(headSha => {
+        console.log(`The head sha is [ ${headSha} ]`)
+        return startCheck(headSha)
+    }).then(checkRes => {
+        return startBuild.then(buildRes => ({
             checkRes,
             buildRes
         }))
-    }).then(data => {
-        console.log(data)
+    }).then(obj => {
+        console.log(obj)
         return context.octokit.pulls.createReview({
             event: "COMMENT",
             body: `Running build and test!`,
@@ -79,32 +91,15 @@ async function prComment(context) {
 }
 
 /**
- * 
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
     console.log("Yay, the app was loaded!");
-    app.on("issues.opened", async (context) => {
-        console.log("Issue has been opened.")
-        const issueComment = context.issue({
-            body: "Thanks for opening this issue " + context.payload.sender.login,
-        });
-        return context.octokit.issues.createComment(issueComment);
-    });
 
-    app.on("pull_request.opened", prOpened)
-    app.on("pull_request.reopened", prOpened)
+    app.on("pull_request.opened", sayHi)
+    app.on("pull_request.reopened", sayHi)
 
-    // app.on("pull_request_review", async (context) => {
-    //     const body = context.payload.review.body
-    //     return context.octokit.pulls.createReview({
-    //         event: "COMMENT",
-    //         body: `Running ${body}`,
-    //         ...context.pullRequest()
-    //     })
-    // })
-
-    app.on("pull_request_review", prComment)
-    app.on("commit_comment", prComment)
-    app.on("issue_comment.created", prComment)
+    app.on("pull_request_review", runCi)
+    app.on("commit_comment", runCi)
+    app.on("issue_comment.created", runCi)
 };
