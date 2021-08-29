@@ -89,7 +89,7 @@ async function runPush(context) {
 }
 
 async function runCiComponent(component, context) {
-    const headSha = getHeadSha(context)
+    const headSha = await getHeadSha(context)
     const checkId = await startCheck(component.checkName, context, headSha)
     await context.octokit.pulls.createReview({
         event: "COMMENT",
