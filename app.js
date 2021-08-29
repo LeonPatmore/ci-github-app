@@ -112,7 +112,7 @@ async function runCiComponent(component, context) {
             ...context.pullRequest()
         })
     }
-} 
+}
 
 /**
  * @param {import('probot').Context} context 

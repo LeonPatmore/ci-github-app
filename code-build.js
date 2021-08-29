@@ -34,7 +34,7 @@ async function isBuildSuccessful(id) {
 }
 
 async function startBuild(projectName, envVars) {
-    new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         codeBuildClient.startBuild({
             projectName,
             environmentVariablesOverride: envVars
