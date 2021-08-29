@@ -75,6 +75,7 @@ Resources:
             - Effect: Allow
               Action:
                 - codebuild:StartBuild
+                - codebuild:BatchGetBuilds
               Resource:
                 - !GetAtt BuildTestJob.Arn
       Timeout: 600
