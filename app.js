@@ -30,7 +30,18 @@ async function prComment(context) {
         return;
     }
 
-    const headSha = context.payload.pull_request.head.sha
+    var headSha
+    if (context.name == "issue_comment.created") {
+        const res = context.octokit.pulls.get({
+            pull_number: context.payload.issue.number,
+            ...context.repo()
+        })
+        console.log(res)
+        headSha = context.payload.pull_request.head.sha
+    } else {
+        headSha = context.payload.pull_request.head.sha
+    }
+
     console.log(`head sha is ${headSha}`)
     const startCheck = context.octokit.checks.create({
         name: "BuildAndTest",
@@ -50,6 +61,8 @@ async function prComment(context) {
             else resolve(data)
         })
     })
+
+
     return startCheck.then(checkRes => {
         return startBuild.then(buildRes => Promise.resolve({
             checkRes,
