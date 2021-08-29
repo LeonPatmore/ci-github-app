@@ -60,12 +60,12 @@ async function finishCheck(conclusion, checkRunId) {
 }
 
 const CI_JOBS = {
-    "push": {
+    push: {
         checkName: "Push to ECR",
         prAction: "Pushing to ECR",
         funcToCall: runPush
     },
-    "test": {
+    test: {
         checkName: "Unit Tests",
         prAction: "Running unit tests",
         funcToCall: runUnitTest
@@ -130,6 +130,7 @@ async function runCi(context) {
     if (body.startsWith("CI")) {
         const job = body.substring(3)
         console.log(`Trying to run job [ ${job} ]`)
+        console.log(job in CI_JOBS)
         if (job in CI_JOBS) {
             await runCiComponent(CI_JOBS[job], context)
         } else {
@@ -154,7 +155,7 @@ async function runCiAll(context) {
             resolve()
         })
     })
-    return new Promise.all(jobs)
+    return Promise.all(jobs)
 }
 
 /**
