@@ -1,7 +1,7 @@
 
-const AWS = require("aws-sdk")
+const AWS = require("aws-sdk");
+const { isBuildSuccessful } = require("./code-build");
 const codeBuildClient = new AWS.CodeBuild()
-
 
 /**
  * @param {import('probot').Context} context 
@@ -14,7 +14,6 @@ async function sayHi(context) {
         ...context.pullRequest()
     })
 }
-
 
 /**
  * @param {import('probot').Context} context 
@@ -56,6 +55,17 @@ async function runCi(context) {
             head_sha: headSha,
             status: "in_progress",
             ...context.repo()
+        }).then(res => {
+            res.data.id
+        })
+    }
+
+    const finishRun = (conclusion, checkRunId) => {
+        return context.octokit.checks.update({
+            status: 'completed',
+            conclusion,
+            check_run_id: checkRunId,
+            ...context.repo()
         })
     }
 
@@ -71,22 +81,49 @@ async function runCi(context) {
         })
     })
 
+    const onBuildSuccess = (checkId) => {
+        return finishRun('success', checkId).then(_ => {
+            return context.octokit.pulls.createReview({
+                event: "COMMENT",
+                body: `Running build and test has passed!`,
+                ...context.pullRequest()
+            })
+        })
+    }
+
+    const onBuildFailure = (checkId) => {
+        return finishRun('failure', checkId).then(_ => {
+            return context.octokit.pulls.createReview({
+                event: "COMMENT",
+                body: `Running build and test has failed!`,
+                ...context.pullRequest()
+            })
+        })
+    }
 
     return getHeadSha.then(headSha => {
         console.log(`The head sha is [ ${headSha} ]`)
         return startCheck(headSha)
-    }).then(checkRes => {
+    }).then(checkId => {
         return startBuild.then(buildRes => ({
-            checkRes,
+            checkId,
             buildRes
         }))
     }).then(obj => {
-        console.log(obj)
+        // console.log(obj)
         return context.octokit.pulls.createReview({
             event: "COMMENT",
             body: `Running build and test!`,
             ...context.pullRequest()
-        }) 
+        }).then(_ => obj)
+    }).then(obj => {
+        isBuildSuccessful(obj.buildRes.build.id).then(success => {
+            if (success) {
+                return onBuildSuccess(obj.checkId)
+            } else {
+                return onBuildFailure(obj.checkId)
+            }
+        })
     })
 }
 
