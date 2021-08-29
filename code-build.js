@@ -1,3 +1,5 @@
+const codeBuildClient = new AWS.CodeBuild()
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
