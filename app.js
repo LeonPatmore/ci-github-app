@@ -149,7 +149,7 @@ async function runCi(context) {
 async function runCiAll(context) {
     console.log("Running all CI without fail!")
     const jobs = Object.values(CI_JOBS).map(value => {
-        return new Promise(resolve => {
+        return new Promise(async resolve => {
             await runCiComponent(value, context)
             resolve()
         })
@@ -163,6 +163,7 @@ async function runCiAll(context) {
 module.exports = (app) => {
     console.log("Yay, the app was loaded!");
     app.on("pull_request.opened", runCiAll)
+    app.on("pull_request.reopened", runCiAll)
     app.on("pull_request_review", runCi)
     app.on("issue_comment.created", runCi)
 };
