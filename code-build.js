@@ -18,7 +18,7 @@ async function isBuildSuccessful(id) {
             })
         })
         console.log(codeBuildResult)
-        const buildStatus = codeBuildResult.builds[0].buildStatus
+        const buildStatus = codeBuildResult[0].buildStatus
         console.log(`Build status is [ ${buildStatus} ]`)
         if (buildStatus == "SUCCEEDED") {
             return true
