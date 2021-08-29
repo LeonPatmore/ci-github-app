@@ -33,4 +33,17 @@ async function isBuildSuccessful(id) {
     throw new Error("Timed out while waiting for build to finish!")
 }
 
-module.exports = { isBuildSuccessful }
+async function startBuild(projectName, envVars) {
+    new Promise((resolve, reject) => {
+        codeBuildClient.startBuild({
+            projectName,
+            environmentVariablesOverride: envVars
+        }, (err, data) => {
+            if (err) reject(err)
+            else resolve(data.build.id)
+        })
+    })
+}
+
+
+module.exports = { isBuildSuccessful, startBuild }
