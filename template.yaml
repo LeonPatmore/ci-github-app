@@ -112,6 +112,7 @@ Resources:
                 - codebuild:BatchGetBuilds
               Resource:
                 - !GetAtt BuildTestJob.Arn
+                - !GetAtt ECRJob.Arn
       Timeout: 600
       Events:
         Api:
