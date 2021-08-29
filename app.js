@@ -41,7 +41,6 @@ async function runCi(context) {
             ...context.repo()
         })
         getHeadSha = getPr.then(res => {
-            console.log(res)
             return res.data.head.sha
         })
     } else {
@@ -55,11 +54,12 @@ async function runCi(context) {
             status: "in_progress",
             ...context.repo()
         }).then(res => {
-            res.data.id
+            return res.data.id
         })
     }
 
     const finishRun = (conclusion, checkRunId) => {
+        console.log(`Setting check [ ${checkRunId} ] to [ ${conclusion} ]`)
         return context.octokit.checks.update({
             status: 'completed',
             conclusion,

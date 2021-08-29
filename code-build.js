@@ -27,10 +27,9 @@ async function isBuildSuccessful(id) {
             console.log(`Build failed!`)
             return false
         }
-        console.log(`Will wait 5 seconds and try again!`)
         i++
-        await sleep(5000)
-    } while (i < 20)
+        await sleep(7000)
+    } while (i < 25)
     throw new Error("Timed out while waiting for build to finish!")
 }
 
