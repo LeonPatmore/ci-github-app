@@ -42,8 +42,8 @@ async function runCi(context) {
             pull_number: context.payload.issue.number,
             ...context.repo()
         })
-        console.log(res)
         getHeadSha = getPr.then(res => {
+            console.log(res)
             return res.data.head.sha
         })
     } else {
