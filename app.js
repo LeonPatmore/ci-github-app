@@ -1,4 +1,3 @@
-
 const AWS = require("aws-sdk");
 const { isBuildSuccessful } = require("./code-build");
 const codeBuildClient = new AWS.CodeBuild()

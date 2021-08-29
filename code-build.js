@@ -1,3 +1,4 @@
+const AWS = require("aws-sdk");
 const codeBuildClient = new AWS.CodeBuild()
 
 function sleep(ms) {
