@@ -21,10 +21,13 @@ async function isBuildSuccessful(id) {
         const buildStatus = codeBuildResult[0].buildStatus
         console.log(`Build status is [ ${buildStatus} ]`)
         if (buildStatus == "SUCCEEDED") {
+            console.log(`Build succeeded!`)
             return true
         } else if (buildStatus != "IN_PROGRESS") {
+            console.log(`Build failed!`)
             return false
         }
+        console.log(`Will wait 5 seconds and try again!`)
         i++
         await sleep(5000)
     } while (i < 20)

@@ -116,7 +116,7 @@ async function runCi(context) {
             ...context.pullRequest()
         }).then(_ => obj)
     }).then(obj => {
-        isBuildSuccessful(obj.buildRes.build.id).then(success => {
+        return isBuildSuccessful(obj.buildRes.build.id).then(success => {
             if (success) {
                 return onBuildSuccess(obj.checkId)
             } else {
