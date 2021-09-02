@@ -89,6 +89,31 @@ Resources:
                 - git clone ${PROJECT} .
                 - ./gradlew jib
         Type: NO_SOURCE
+  LibPushJob:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Description: Build and push a library
+      Name: "LibPush"
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      Source:
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                java: corretto11
+            build:
+              commands:
+                - git clone ${PROJECT} .
+                - ./gradlew clean artifactoryPublish
+        Type: NO_SOURCE
   Webhooks:
     Type: AWS::Serverless::Function
     Properties:
